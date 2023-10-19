@@ -3,22 +3,40 @@ import { Text, View, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import Constants from 'expo-constants';
 import { Camera, CameraType } from 'expo-camera';
 import * as MediaLibrary from 'expo-media-library'; //for saving image to phone
-import { MaterialIcons } from '@expo/vector-icons';
 import Button from './src/components/Button';
 
+import axios from 'axios';
+
 export default function App() {
-    //rest api
-    const fetchData = () => {
-        fetch("https://e6cb-90-251-175-217.ngrok-free.app/store")
-          .then((response) => response.json())
-      }
-    
-    //camera setup
+    //var setup
     const [hasCameraPermission, setHasCameraPermission] = useState(null);
     const [image, setImage] = useState(null);
+    const [base64Image, setBase64Image] = useState(null);
     const [type, setType] = useState(Camera.Constants.Type.back);
     const [flash, setFlash] = useState(Camera.Constants.FlashMode.off);
     const cameraRef = useRef(null);
+    const [material, setMaterial] = useState(null);
+
+    const [jsonData, setJsonData] = useState(null);
+
+    async function postImage() {
+        const dataToSend = {
+            base64Image: base64Image
+        };
+        
+        try {
+           let res = await axios.post("https://50e4-90-251-175-217.ngrok-free.app", dataToSend);
+            if(res.status == 201){
+                // test for status you want, etc
+                console.log(res.status)
+            }    
+            // Don't forget to return something   
+            return res.data
+        }
+        catch (err) {
+            console.error(err);
+        }
+    };
     
     //asking for permission to use camera
     useEffect(() => {
@@ -33,9 +51,11 @@ export default function App() {
     const takePicture = async () => {
         if (cameraRef) {
             try {
-                const data = await cameraRef.current.takePictureAsync();
+                const options = { quality: 0.7, base64: true };
+                const data = await cameraRef.current.takePictureAsync(options);
                 console.log(data.uri);
                 setImage(data.uri);
+                setBase64Image(data.base64);
             } catch (error) {
                 console.log(error);
             }
@@ -46,8 +66,8 @@ export default function App() {
     const savePicture = async () => {
         if (image) {
             try {
-                const asset = await MediaLibrary.createAssetAsync(image);
-                alert('Picture saved! 🎉');
+                postImage()
+                .then(res => alert(res["material"]));
                 setImage(null);
                 console.log('saved successfully');
             } catch (error) {
