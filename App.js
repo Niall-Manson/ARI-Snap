@@ -7,6 +7,8 @@ import Button from './src/components/Button';
 
 import axios from 'axios';
 
+import * as Speech from 'expo-speech';
+
 export default function App() {
     //var setup
     const [hasCameraPermission, setHasCameraPermission] = useState(null);
@@ -25,10 +27,11 @@ export default function App() {
         };
         
         try {
-           let res = await axios.post("https://50e4-90-251-175-217.ngrok-free.app", dataToSend);
+           let res = await axios.post("https://ad65-90-251-175-217.ngrok-free.app", dataToSend);
             if(res.status == 201){
                 // test for status you want, etc
                 console.log(res.status)
+                speakText(res.data["material"])
             }    
             // Don't forget to return something   
             return res.data
@@ -37,7 +40,14 @@ export default function App() {
             console.error(err);
         }
     };
-    
+
+    const speakText = async (textToSpeak) => {
+        try {
+          await Speech.speak(textToSpeak, { rate: 0.75 }); // You can adjust the speech rate as needed.
+        } catch (error) {
+          console.error("An error occurred while speaking:", error);
+        }
+    };
     //asking for permission to use camera
     useEffect(() => {
         (async () => {
